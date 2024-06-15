@@ -1,0 +1,63 @@
+version: '3.1'
+
+services:
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: news-system-app
+    container_name: news-system-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+
+  webserver:
+    image: nginx:alpine
+    container_name: news-system-webserver
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www
+      - ./nginx:/etc/nginx/conf.d
+    networks:
+      - app-network
+
+  db:
+    image: mysql:8.0
+    container_name: news-system-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: news
+      MYSQL_USER: otters
+      MYSQL_PASSWORD: Otters@73838
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+  redis:
+    image: redis:alpine
+    container_name: news-system-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+      
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
